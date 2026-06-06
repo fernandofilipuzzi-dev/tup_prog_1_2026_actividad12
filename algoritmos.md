@@ -218,18 +218,20 @@ La diferencia se vuelve drástica a medida que crece el vector. Para un millón 
 
 ### Objetivo conceptual
 
-El ordenamiento burbuja reorganiza el vector de menor a mayor. En esta implementación, cada pasada **fija una posición** del vector: se toma la posición `i` y se la compara contra todos los elementos que están más adelante; si aparece uno menor, se intercambia para que el más pequeño quede en la posición `i`.
+El ordenamiento burbuja recorre el vector comparando **pares de elementos adyacentes** `(j-1, j)` y, cuando están en desorden, los intercambia. Su nombre proviene de la imagen de los valores más grandes "flotando" como burbujas hacia el final del vector.
 
-> **Idea central:** en la pasada `i`, la posición `i` "atrae" al **menor valor del segmento `i..n-1`**. Después de la primera pasada, la posición `0` contiene el mínimo de todo el vector. Después de la segunda, la posición `1` contiene el segundo menor. Y así sucesivamente, el frente del vector se va ordenando de menor a mayor.
+En esta implementación el bucle interno **arranca en `i + 1`** y llega hasta `n - 1`: en cada pasada `i` se hace un recorrido de burbuja sobre el segmento `i..n-1`, llevando el mayor de ese segmento hacia la derecha. A diferencia de la burbuja clásica —que acorta el límite superior (`j < n - 1 - i`) para fijar el final—, aquí lo que avanza en cada pasada es el **inicio** del segmento (`i`).
+
+> **Idea central:** en la pasada `i`, al comparar los pares adyacentes desde `i+1` hasta `n-1`, el mayor del segmento `i..n-1` termina "flotando" hacia la última posición. El extremo derecho del vector se va ordenando, pero como el inicio del recorrido **avanza** en lugar de volver a revisar el frente, **las primeras posiciones pueden quedar sin ordenar**.
 
 ### Estructura del algoritmo: dos bucles anidados
 
 ```
-Bucle exterior (i): recorre las posiciones a fijar (de 0 a n-2).
-    Al terminar la pasada i, la posición i ya contiene su valor definitivo.
+Bucle exterior (i): avanza el inicio del segmento, de 0 a n-2.
+    En cada pasada se recorre el segmento i..n-1.
 
-Bucle interior (j): recorre el resto del vector (de i+1 hasta n-1).
-    Si numeros[i] > numeros[j] → hay un valor menor más adelante → intercambiar.
+Bucle interior (j): recorre pares adyacentes desde i+1 hasta n-1.
+    Compara (j-1, j); si numeros[j-1] > numeros[j] → intercambiar (el mayor avanza a la derecha).
 ```
 
 ### Código en C#
@@ -239,12 +241,11 @@ public static void OrdenarBurbuja(int[] numeros, int n)
 {
     for (int i = 0; i < n - 1; i++)
     {
-        for (int j = i + 1; j < n; j++)
+        for (int j = i+1; j < n;  j++)
         {
             if (numeros[j-1] > numeros[j])
                 Intercambiar(numeros, j-1, j);
         }
-        // al terminar esta pasada, numeros[i] contiene el menor del segmento i..n-1
     }
 }
 
@@ -256,7 +257,7 @@ private static void Intercambiar(int[] numeros, int a, int b)
 }
 ```
 
-Obsérvese que el bucle interior arranca en `j = i + 1`: la posición `i` solo se compara contra los elementos que aún no están fijados. Cada intercambio deja en `numeros[i]` el menor encontrado hasta ese punto.
+El bucle interno compara siempre pares **adyacentes** `(j-1, j)`. En cada pasada el inicio `i` avanza una posición, por lo que el recorrido es cada vez más corto por la izquierda y el mayor del segmento `i..n-1` se desplaza hacia el final.
 
 ### Seguimiento paso a paso
 
@@ -264,82 +265,86 @@ Vector inicial: `{ 5, 3, 8, 1, 9, 2 }`, n = 6
 
 ---
 
-#### Pasada i = 0 — la posición 0 se fija con el menor (1)
+#### Pasada i = 0 — recorre el segmento 0..5; el mayor (9) flota a la posición 5
 
 | j | Comparación | ¿Intercambio? | Estado del vector |
 |:---:|---|:---:|---|
 | 1 | `numeros[0]=5 > numeros[1]=3` | **Sí** | `{ 3, 5, 8, 1, 9, 2 }` |
-| 2 | `numeros[0]=3 > numeros[2]=8` | No | `{ 3, 5, 8, 1, 9, 2 }` |
-| 3 | `numeros[0]=3 > numeros[3]=1` | **Sí** | `{ 1, 5, 8, 3, 9, 2 }` |
-| 4 | `numeros[0]=1 > numeros[4]=9` | No | `{ 1, 5, 8, 3, 9, 2 }` |
-| 5 | `numeros[0]=1 > numeros[5]=2` | No | `{ 1, 5, 8, 3, 9, 2 }` |
+| 2 | `numeros[1]=5 > numeros[2]=8` | No | `{ 3, 5, 8, 1, 9, 2 }` |
+| 3 | `numeros[2]=8 > numeros[3]=1` | **Sí** | `{ 3, 5, 1, 8, 9, 2 }` |
+| 4 | `numeros[3]=8 > numeros[4]=9` | No | `{ 3, 5, 1, 8, 9, 2 }` |
+| 5 | `numeros[4]=9 > numeros[5]=2` | **Sí** | `{ 3, 5, 1, 8, 2, 9 }` |
 
-Resultado: `{ `**`1`**`, 5, 8, 3, 9, 2 }` — el **1** quedó fijo en la posición 0.
-
----
-
-#### Pasada i = 1 — la posición 1 se fija con el 2
-
-| j | Comparación | ¿Intercambio? | Estado del vector |
-|:---:|---|:---:|---|
-| 2 | `numeros[1]=5 > numeros[2]=8` | No | `{ 1, 5, 8, 3, 9, 2 }` |
-| 3 | `numeros[1]=5 > numeros[3]=3` | **Sí** | `{ 1, 3, 8, 5, 9, 2 }` |
-| 4 | `numeros[1]=3 > numeros[4]=9` | No | `{ 1, 3, 8, 5, 9, 2 }` |
-| 5 | `numeros[1]=3 > numeros[5]=2` | **Sí** | `{ 1, 2, 8, 5, 9, 3 }` |
-
-Resultado: `{ `**`1, 2`**`, 8, 5, 9, 3 }` — el **1** y **2** están fijos.
+Resultado: `{ 3, 5, 1, 8, 2, `**`9`**` }` — el **9** quedó en la posición 5.
 
 ---
 
-#### Pasada i = 2 — la posición 2 se fija con el 3
+#### Pasada i = 1 — recorre el segmento 1..5; el 8 flota a la posición 4
 
 | j | Comparación | ¿Intercambio? | Estado del vector |
 |:---:|---|:---:|---|
-| 3 | `numeros[2]=8 > numeros[3]=5` | **Sí** | `{ 1, 2, 5, 8, 9, 3 }` |
-| 4 | `numeros[2]=5 > numeros[4]=9` | No | `{ 1, 2, 5, 8, 9, 3 }` |
-| 5 | `numeros[2]=5 > numeros[5]=3` | **Sí** | `{ 1, 2, 3, 8, 9, 5 }` |
+| 2 | `numeros[1]=5 > numeros[2]=1` | **Sí** | `{ 3, 1, 5, 8, 2, 9 }` |
+| 3 | `numeros[2]=5 > numeros[3]=8` | No | `{ 3, 1, 5, 8, 2, 9 }` |
+| 4 | `numeros[3]=8 > numeros[4]=2` | **Sí** | `{ 3, 1, 5, 2, 8, 9 }` |
+| 5 | `numeros[4]=8 > numeros[5]=9` | No | `{ 3, 1, 5, 2, 8, 9 }` |
 
-Resultado: `{ `**`1, 2, 3`**`, 8, 9, 5 }` — el **1**, **2** y **3** están fijos.
+Resultado: `{ 3, 1, 5, 2, `**`8, 9`**` }` — la cola `{ 8, 9 }` queda ordenada.
 
 ---
 
-#### Pasada i = 3 — la posición 3 se fija con el 5
+#### Pasada i = 2 — recorre el segmento 2..5; el 5 flota a la posición 3
 
 | j | Comparación | ¿Intercambio? | Estado del vector |
 |:---:|---|:---:|---|
-| 4 | `numeros[3]=8 > numeros[4]=9` | No | `{ 1, 2, 3, 8, 9, 5 }` |
-| 5 | `numeros[3]=8 > numeros[5]=5` | **Sí** | `{ 1, 2, 3, 5, 9, 8 }` |
+| 3 | `numeros[2]=5 > numeros[3]=2` | **Sí** | `{ 3, 1, 2, 5, 8, 9 }` |
+| 4 | `numeros[3]=5 > numeros[4]=8` | No | `{ 3, 1, 2, 5, 8, 9 }` |
+| 5 | `numeros[4]=8 > numeros[5]=9` | No | `{ 3, 1, 2, 5, 8, 9 }` |
 
-Resultado: `{ `**`1, 2, 3, 5`**`, 9, 8 }` — el **1**, **2**, **3** y **5** están fijos.
+Resultado: `{ 3, 1, 2, `**`5, 8, 9`**` }` — la cola `{ 5, 8, 9 }` queda ordenada.
 
 ---
 
-#### Pasada i = 4 — la posición 4 se fija con el 8
+#### Pasada i = 3 — recorre el segmento 3..5; ya está ordenado, sin cambios
 
 | j | Comparación | ¿Intercambio? | Estado del vector |
 |:---:|---|:---:|---|
-| 5 | `numeros[4]=9 > numeros[5]=8` | **Sí** | `{ 1, 2, 3, 5, 8, 9 }` |
+| 4 | `numeros[3]=5 > numeros[4]=8` | No | `{ 3, 1, 2, 5, 8, 9 }` |
+| 5 | `numeros[4]=8 > numeros[5]=9` | No | `{ 3, 1, 2, 5, 8, 9 }` |
 
-Resultado: `{` **`1, 2, 3, 5, 8, 9`** `}` — vector completamente ordenado (la última posición queda fija por descarte).
+Resultado: `{ 3, 1, 2, 5, 8, 9 }` — sin cambios.
+
+---
+
+#### Pasada i = 4 — recorre el segmento 4..5; sin cambios
+
+| j | Comparación | ¿Intercambio? | Estado del vector |
+|:---:|---|:---:|---|
+| 5 | `numeros[4]=8 > numeros[5]=9` | No | `{ 3, 1, 2, 5, 8, 9 }` |
+
+Resultado: `{ 3, 1, 2, 5, 8, 9 }` — sin cambios.
 
 ---
 
 ### Resumen visual de pasadas
 
-| Pasada | Estado al finalizar | Posición fijada |
+| Pasada | Estado al finalizar | Posición fijada (desde la derecha) |
 |:---:|---|:---:|
 | Inicio | `{ 5, 3, 8, 1, 9, 2 }` | — |
-| i = 0 | `{` **`1`**`, 5, 8, 3, 9, 2 }` | 0 → 1 |
-| i = 1 | `{` **`1, 2`**`, 8, 5, 9, 3 }` | 1 → 2 |
-| i = 2 | `{` **`1, 2, 3`**`, 8, 9, 5 }` | 2 → 3 |
-| i = 3 | `{` **`1, 2, 3, 5`**`, 9, 8 }` | 3 → 5 |
-| i = 4 | `{` **`1, 2, 3, 5, 8, 9`**` }` | 4 → 8 (y 5 → 9) |
+| i = 0 | `{ 3, 5, 1, 8, 2, `**`9`**` }` | 5 → 9 |
+| i = 1 | `{ 3, 1, 5, 2, `**`8, 9`**` }` | 4 → 8 |
+| i = 2 | `{ 3, 1, 2, `**`5, 8, 9`**` }` | 3 → 5 |
+| i = 3 | `{ 3, 1, 2, 5, 8, 9 }` | sin cambios |
+| i = 4 | `{ 3, 1, 2, 5, 8, 9 }` | sin cambios |
+
+Resultado final: `{ `**`3, 1, 2`**`, 5, 8, 9 }` — la cola `{ 5, 8, 9 }` queda ordenada, pero el frente `{ 3, 1, 2 }` **no**.
 
 ### Observaciones clave
 
-- Dos bucles anidados: el exterior hace **n−1** pasadas; el interior hace entre 1 y n−1 comparaciones por pasada.
+- Dos bucles anidados: el exterior hace **n−1** pasadas; el interior recorre pares adyacentes desde `i + 1` hasta `n − 1`.
 - El total de comparaciones es siempre el mismo independientemente del contenido del vector.
-- En esta variante, lo que se ordena primero es el **frente** del vector (posición 0, luego 1, etc.), a diferencia de la burbuja clásica de pares adyacentes que fija primero el final.
+- En cada pasada el mayor del segmento `i..n-1` "flota" hacia la derecha; por eso el **extremo derecho** del vector se va ordenando primero (posición 5, luego 4, luego 3…).
+- Como el bucle exterior **avanza el inicio** (`i + 1`) en lugar de volver a revisar el frente, esta variante ordena la cola pero **no garantiza que las primeras posiciones queden ordenadas**: con `{ 5, 3, 8, 1, 9, 2 }` el resultado es `{ 3, 1, 2, 5, 8, 9 }`.
+- **Importante:** por lo anterior, el vector resultante puede no quedar completamente ordenado. Tenerlo en cuenta antes de aplicar la búsqueda binaria, que exige un orden total de menor a mayor.
 
 ---
 
@@ -519,12 +524,12 @@ graph TD
 
 | Criterio | Burbuja | QuickSort |
 |---|---|---|
-| **Estrategia** | Fija cada posición con el menor del resto mediante intercambios | Particiona alrededor de un pivote; divide y vencerás |
+| **Estrategia** | Compara e intercambia pares adyacentes; el mayor flota hacia el final en cada pasada | Particiona alrededor de un pivote; divide y vencerás |
 | **Estructura** | Dos bucles `for` anidados, iterativo | Función recursiva con llamadas sobre subvectores |
 | **¿Necesita recursión?** | No | Sí |
 | **Comparaciones (peor caso, n=6)** | 15 | ~9 |
 | **Comparaciones (peor caso, n=1.000.000)** | ~500.000.000.000 | ~20.000.000 |
-| **Intercambios por operación** | 1 intercambio entre la posición i y otra posterior | Puede ser no adyacente |
+| **Intercambios por operación** | 1 intercambio entre posiciones adyacentes | Puede ser no adyacente |
 | **Posición definitiva del pivote** | No aplica | Después de cada partición |
 | **Facilidad de comprensión** | Alta — lógica directa y visual | Media — requiere entender recursión y partición |
 | **Cuándo usarlo** | Colecciones pequeñas, fines didácticos | Colecciones de cualquier tamaño en producción |
