@@ -76,13 +76,14 @@ public class NumericService
             OrdenarPorLUQuickSort();
     }
 
-    // ORDENAMIENTO BURBUJA: en cada pasada el mayor "flota" hacia el final.
+    // ORDENAMIENTO BURBUJA (por intercambio): en cada pasada se fija la posición i
+    // con el menor LU que quede entre i y el final.
     public void OrdenarPorLUBurbuja()
     {
-        for (int i = 0; i < Contador - 1; i++)            // i = cantidad de pasadas
-            for (int j = 0; j < Contador - 1 - i; j++)    // -i: los últimos i ya están fijos
-                if (alumnos[j].LU > alumnos[j + 1].LU)    // par adyacente en orden incorrecto
-                    Intercambiar(j, j + 1);
+        for (int i = 0; i < Contador - 1; i++)        // i = posición que queda fija en esta pasada
+            for (int j = i + 1; j < Contador; j++)    // compara la posición i contra el resto
+                if (alumnos[j-1].LU > alumnos[j].LU)    // hay un LU menor más adelante
+                    Intercambiar(j-1, j);               // lo trae a la posición i
     }
 
     public void OrdenarPorLUQuickSort()

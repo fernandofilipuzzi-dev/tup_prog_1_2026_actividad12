@@ -20,31 +20,22 @@ public partial class FormPrincipal : Form
         FormDatos formDatos = new FormDatos();
         if (formDatos.ShowDialog() == DialogResult.OK)
         {
-            int lu;
-            try
-            {
-                // ACCESO POR INSTANCIA: tbLU es un miembro de instancia de FormDatos,
-                // por eso se accede a través del objeto formDatos (formDatos.tbLU).
-                // Es visible desde fuera del form porque su propiedad Modifiers = Public
-                // en el Diseñador (por defecto los controles serían private).
-                // .Text es a su vez una propiedad de instancia del TextBox y siempre
-                // devuelve string, de ahí la necesidad de convertirlo a número.
-                lu = Convert.ToInt32(formDatos.tbLU.Text);
-            }
-            catch
+            // ACCESO POR INSTANCIA: tbLU es un miembro de instancia de FormDatos,
+            // por eso se accede a través del objeto formDatos (formDatos.tbLU).
+            // Es visible desde fuera del form porque su propiedad Modifiers = Public
+            // en el Diseñador (por defecto los controles serían private).
+            // .Text es a su vez una propiedad de instancia del TextBox y siempre
+            // devuelve string, de ahí la necesidad de convertirlo a número.
+            // int.TryParse: convierte sin lanzar excepción; devuelve false si el texto no es válido.
+            if (!int.TryParse(formDatos.tbLU.Text, out int lu))
             {
                 // MessageBox: diálogo de sistema con icono de error.
                 MessageBox.Show("LU inválido.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            double nota;
-            try
-            {
-                // Mismo acceso por instancia y propiedad Text (string) que tbLU.
-                nota = Convert.ToDouble(formDatos.tbNota.Text);
-            }
-            catch
+            // Mismo acceso por instancia y propiedad Text (string) que tbLU.
+            if (!double.TryParse(formDatos.tbNota.Text, out double nota))
             {
                 MessageBox.Show("Nota inválida.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -62,12 +53,8 @@ public partial class FormPrincipal : Form
     // Manejador del evento Click: se ejecuta al presionar "Buscar".
     private void btnBuscarAlumno_Click(object sender, EventArgs e)
     {
-        int lu;
-        try
-        {
-            lu = Convert.ToInt32(tbLU.Text); // lee el LU a buscar desde el TextBox
-        }
-        catch
+        // int.TryParse: lee el LU a buscar sin lanzar excepción si el texto no es un número.
+        if (!int.TryParse(tbLU.Text, out int lu))
         {
             MessageBox.Show("LU inválido.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
