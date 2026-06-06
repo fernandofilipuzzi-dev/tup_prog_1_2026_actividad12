@@ -1,4 +1,11 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="../Actividad12.docx" />
+    <File Path="../algoritmos.md" />
+    <File Path="../explicacion.md" />
+    <File Path="../README.md" />
+    <File Path="../winforms.md" />
+  </Folder>
   <Project Path="Ejercicio1_VectoresIndiceComun/Ejercicio1_VectoresIndiceComun.csproj" />
   <Project Path="Ejercicio2_VectorObjeto/Ejercicio2_VectorObjeto.csproj" />
 </Solution>
